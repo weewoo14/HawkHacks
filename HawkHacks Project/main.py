@@ -13,6 +13,9 @@ game_window = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT))
 pygame.display.set_caption("TOUCAN GACHA SIMULATOR")
 bg = pygame.image.load("background/main_background.png")
 cherrished_berry = pygame.image.load("cherrished_berry.png")
+enemy_toucan_cards = enemy_card_generate()
+player_enemy_choice = [0,1,2,3,4]
+enemy_player_choice = [0,1,2,3,4]
 
 game_running = True
 while game_running:
@@ -21,8 +24,10 @@ while game_running:
         if event.type == pygame.QUIT:
             game_running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if is_collision(mouse_xpos,mouse_ypos,pull_button_x,pull_button_y,pull_button_width,pull_button_height):
+            if is_collision(mouse_xpos,mouse_ypos,pull_button_x,pull_button_y,pull_button_width,pull_button_height) and amount_of_cb >= 1600:
+                paid = True
                 press_pull = True
+                amount_of_cb -= 1600
                 pull_animation_cooldown = 0
                 cards_rect = generate_cards()
             for key,val in button_dict.items():
@@ -36,6 +41,8 @@ while game_running:
                         combat_screen = False
                         pull_screen = True
                         team_screen = False
+                        press_pull = False
+                        paid = False
                     elif key == 3:
                         combat_screen = False
                         pull_screen = False
@@ -56,16 +63,17 @@ while game_running:
                             col = 5
                         else:
                             col += 1
-
     game_window.fill(BLACK)
     game_window.blit(bg,(0,0))
     if pull_screen:
         pull_button_img = pull_button_colors[is_collision(mouse_xpos,mouse_ypos,pull_button_x,pull_button_y,pull_button_width,pull_button_height)]
         game_window.blit(pull_button_img,(pull_button_x,pull_button_y))
-        if press_pull:
+        game_window.blit(cherrished_berry,(475,350))
+        if press_pull and paid:
             for img,pos in cards_rect:
                 game_window.blit(img,pos)
-        GAME_FONT.render_to(game_window,pull_button_text,"PULL",WHITE)
+        GAME_FONT.render_to(game_window,(pull_button_x+30,pull_button_y+25,pull_button_width,pull_button_height),"PULL",WHITE)
+        GAME_FONT.render_to(game_window,(pull_button_x+140,pull_button_y+25,pull_button_width,pull_button_height),"1600",WHITE)
     if combat_screen:
         team_count = 0
         for player_toucan in range(TEAM_SIZE):
@@ -83,6 +91,7 @@ while game_running:
                 if player_damage_bars[idx] > 75:
                     player_toucan_death[idx] = True
                     player_damage_bars[idx] = 75
+                    enemy_player_choice.remove(idx)
                 if player_toucan_death[idx]:
                     game_window.blit(alive_to_death[player_card_img[idx]-1],(rect[0],rect[1]))
                 else:
@@ -94,6 +103,7 @@ while game_running:
             if enemy_damage_bars[idx] > 75:
                 enemy_toucan_death[idx] = True
                 enemy_damage_bars[idx] = 75
+                player_enemy_choice.remove(idx)
             if enemy_toucan_death[idx]:
                 game_window.blit(alive_to_death[img],(x,y))
             else:
@@ -103,17 +113,32 @@ while game_running:
         if team_count == 5 and player_attack_cooldown >= 500:
             for player_toucan in range(TEAM_SIZE):
                 if player_damage_bars[player_toucan] < 75:
-                    random_enemy = randint(0,4)
+                    if len(player_enemy_choice) == 0:
+                        player_enemy_choice.append(1)
+                    random_enemy = choice(player_enemy_choice)
                     pspd,patk,php = sprite_stats[player_card_img[player_toucan]-1]
                     espd,eatk,ehp = sprite_stats[enemy_toucan_cards[random_enemy]]
                     enemy_damage_bars[random_enemy] += int(card_width * (patk/ehp))
             for enemy_toucan in range(TEAM_SIZE):
                 if enemy_damage_bars[enemy_toucan] < 75:
-                    random_player = randint(0,4)
+                    if len(enemy_player_choice) == 0:
+                        enemy_player_choice.append(1)
+                    random_player = choice(enemy_player_choice)
                     espd,eatk,ehp = sprite_stats[enemy_toucan_cards[enemy_toucan]]
                     pspd,patk,php = sprite_stats[player_card_img[random_player]-1]
                     player_damage_bars[random_player] += int(card_width * (eatk/php))
             player_attack_cooldown = 0
+            player_deaths,enemy_deaths = sum(player_toucan_death),sum(enemy_toucan_death)
+            if enemy_deaths == TEAM_SIZE or player_deaths == TEAM_SIZE:
+                if enemy_deaths == TEAM_SIZE:
+                    amount_of_cb += 100
+                enemy_toucan_cards = enemy_card_generate()
+                enemy_damage_bars = [0,0,0,0,0]
+                enemy_toucan_death = [False,False,False,False,False]
+                player_damage_bars = [0,0,0,0,0]
+                player_toucan_death = [False,False,False,False,False]
+                player_enemy_choice = [0,1,2,3,4]
+                enemy_player_choice = [0,1,2,3,4]
     if team_screen:
         TURN_FONT.render_to(game_window,header_text_rect,"Team Maker",WHITE)
         for idx,info in enumerate(player_card_rect):
@@ -135,13 +160,13 @@ while game_running:
                 col = 5
             else:
                 col += 1
-    pygame.draw.line(game_window,GRAY,(SCREEN_WIDTH//2,0),(SCREEN_WIDTH//2,SCREEN_HEIGHT))
     for key,val in button_dict.items():
         rx,ry,rw,rh = val[0],val[1],val[2],val[3]
         img = button_colors[key][is_collision(mouse_xpos,mouse_ypos,rx,ry,rw,rh)]
         game_window.blit(img,(rx,ry))
         TURN_FONT.render_to(game_window,val,button_text[key],WHITE)
     game_window.blit(cherrished_berry,(720,0))
+    TURN_FONT.render_to(game_window,(600,25,720,83),str(amount_of_cb),WHITE)
     player_attack_cooldown += 1
     pygame.display.flip()
     

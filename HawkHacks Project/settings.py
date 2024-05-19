@@ -3,7 +3,7 @@ import pygame.freetype
 pygame.init()
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 500
-GAME_FONT = pygame.freetype.Font("COMICSANS.TTF", 65)
+GAME_FONT = pygame.freetype.Font("COMICSANS.TTF", 45)
 TURN_FONT = pygame.freetype.Font("COMICSANS.TTF",45)
 TEXT_OFFSET = 10
 

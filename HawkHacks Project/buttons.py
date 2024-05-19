@@ -6,9 +6,6 @@ pull_button_colors = {0:pygame.image.load("pull_button_dark.png"),1:pygame.image
 
 header_text_rect = (15,15,100,300)
 
-# battle_button_rect = (battle_button_x,battle_button_y,battle_button_width,battle_button_height)
-# battle_button_colors = {0:DARK_RED,1:RED}
-
 button_dict = {1:(battle_button_x,battle_button_y,battle_button_width,battle_button_height),
                2:(pull_button_x2,pull_button_y2,pull_button_width2,pull_button_height2),
                3:(team_button_x,team_button_y,team_button_width,team_button_height)}

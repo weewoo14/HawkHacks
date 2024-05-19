@@ -3,7 +3,9 @@ from random import *
 from toucanspritearray import *
 from cherished_berries import *
 press_pull = False
+paid = False
 pull_animation_cooldown = 0
+amount_of_cb = 1600
 def generate_cards():
     cards_rect = []
     for row in range(2):
